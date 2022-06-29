@@ -1,0 +1,12 @@
+<launch>
+    <master auto="start" />
+
+    <!-- Full Nav -->
+    <include file="$(find navigation)/launch/full_nav.launch" />
+
+    <!-- IOT -->
+    <include file="$(find iot)/launch/iot.launch" />
+
+    <!-- HMI -->
+    <node name="hmi" pkg="hmi" type="update.py" />
+</launch>

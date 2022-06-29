@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="newicon">
+    <file>icons/back.png</file>
+    <file>icons/control.png</file>
+    <file>icons/exit.png</file>
+    <file>icons/front.png</file>
+    <file>icons/home.png</file>
+    <file>icons/left.png</file>
+    <file>icons/right.png</file>
+    <file>icons/stop.png</file>
+    <file>icons/nott.png</file>
+    <file>icons/trent.png</file>
+  </qresource>
+</RCC>
