@@ -1,0 +1,4 @@
+<launch>
+    <master auto="start" />
+    <node name="hmi" pkg="hmi" type="update.py" />
+</launch>
