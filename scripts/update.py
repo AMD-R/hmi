@@ -23,30 +23,35 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal, MoveBaseFeedback, M
 from hmi_modules.ctrl import Ui_ControlWindow
 from hmi_modules.analoggaugewidget import QRoundProgressBar
 
-class Ui_MainWindow(QMainWindow): ##object
 
+class Ui_MainWindow(QMainWindow):  # object
 
     def openWindow(self):
         self.window = QtWidgets.QMainWindow()
         self.ui = Ui_ControlWindow()
         self.ui.setupUi(self.window)
         self.window.show()
+        self.close()
 
     def setupUi(self, MainWindow):
         super().__init__()
 
-        #rospy.init_node('send_client_goal')
-        self.client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
+        # rospy.init_node('send_client_goal')
+        self.client = actionlib.SimpleActionClient('/move_base',
+                                                   MoveBaseAction)
         # self.client.wait_for_server()
         # MainWindow.showFullScreen()
         self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
-        self.pub_nav = rospy.Publisher('/move_base/cancel', GoalID , queue_size=10)
+        self.pub_nav = rospy.Publisher('/move_base/cancel', GoalID,
+                                       queue_size=10)
         self.cmdvel = Twist()
 
-        self.pub_mission = rospy.Publisher("iot/mission", String, queue_size=10)
-        self.curmission = String() 
+        self.pub_mission = rospy.Publisher("iot/mission", String,
+                                           queue_size=10)
+        self.curmission = String()
 
-        self.clear_costmap_client = rospy.ServiceProxy('/move_base/clear_costmaps', std_srvs.srv.Empty)
+        self.clear_costmap_client = rospy.ServiceProxy(
+            '/move_base/clear_costmaps', std_srvs.srv.Empty)
 
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1280, 720)
@@ -112,7 +117,7 @@ class Ui_MainWindow(QMainWindow): ##object
         self.widget.setGeometry(QtCore.QRect(535, 140, 261, 221))# 321, 261))
         # self.widget.setAlignment(Qt.AlignCenter)
         self.widget.setObjectName("widget")
-    
+
         # Autoscrolling Logger
         self.widget_2 = QWidget(self.centralwidget) 
         self.widget_2.setGeometry(QtCore.QRect(360, 370, 561, 241))
@@ -139,8 +144,9 @@ class Ui_MainWindow(QMainWindow): ##object
         # Emergency Stop button
         self.myStop = QtWidgets.QPushButton(self.centralwidget)
         self.myStop.setGeometry(QtCore.QRect(950, 130, 231, 171))
-        self.myStop.setStyleSheet('QPushButton {background-color: #A3C1DA; color: red;}')
-        #self.myStop.setStyleSheet("background-color: rgb(255, 0, 0);")
+        self.myStop.setStyleSheet('QPushButton'
+                                  '{background-color: #A3C1DA; color: red;}')
+        # self.myStop.setStyleSheet("background-color: rgb(255, 0, 0);")
         font = QtGui.QFont()
         font.setFamily("MS Shell Dlg 2")
         font.setPointSize(20)
@@ -170,16 +176,18 @@ class Ui_MainWindow(QMainWindow): ##object
         # Current Mission Label
         self.myMission = QtWidgets.QLabel(self.centralwidget)
         self.myMission.setGeometry(QtCore.QRect(460, 20, 400, 91))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                           QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.myMission.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(self.myMission.sizePolicy()
+                                     .hasHeightForWidth())
         self.myMission.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setPointSize(20)
         self.myMission.setFont(font)
         self.myMission.setObjectName("myMission")
-        #self.myMission.setText(self.label_scroll.text)
+        # self.myMission.setText(self.label_scroll.text)
 
         # Battery Level Label
         self.myBatteryLevel = QtWidgets.QLabel(self.centralwidget)
@@ -201,7 +209,8 @@ class Ui_MainWindow(QMainWindow): ##object
         self.myExit = QtWidgets.QPushButton(self.centralwidget)
         self.myExit.setGeometry(QtCore.QRect(1170, 0, 91, 61))
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/newicon/icons/exit.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon3.addPixmap(QtGui.QPixmap(":/newicon/icons/exit.png"),
+                        QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.myExit.setIcon(icon3)
         self.myExit.setIconSize(QtCore.QSize(60, 60))
         self.myExit.clicked.connect(self.exitapp)
@@ -233,7 +242,8 @@ class Ui_MainWindow(QMainWindow): ##object
         self.current_time = time.strftime("%A %H:%M", self.temp)
         self.myTime.setText(str(self.current_time))
         self.myTime.update()
-        self.ScrollLabel.verticalScrollBar().setValue(self.ScrollLabel.verticalScrollBar().maximum())
+        self.ScrollLabel.verticalScrollBar().setValue(
+            self.ScrollLabel.verticalScrollBar().maximum())
 
     def updateBattery(self, newbatt):
         """Updates the battery value label."""
@@ -244,17 +254,17 @@ class Ui_MainWindow(QMainWindow): ##object
         """Updates current mission label."""
         self.myMission.setText("Current Mission: " + newmission)
         self.myMission.setAlignment(Qt.AlignCenter)
-        
+
     def updateLog(self, newtext):
         """Updates log widget text and autoscrolls."""
         self.haha += 1
         if self.haha >= 20:
             self.label_scroll.text = "Logging Window"
-            self.haha = 0   
+            self.haha = 0
             print(self.label_scroll.text)
-        self.label_scroll.text = self.label_scroll.text + "\n" + newtext #append new string
+        self.label_scroll.text = self.label_scroll.text + "\n" + newtext  # append new string
         self.label_scroll.setText(self.label_scroll.text)
-        self.label_scroll.update() #update text
+        self.label_scroll.update()  # update text
         self.label_scroll.setWordWrap(True)
         app.processEvents()
         showing = str(self.label_scroll.text)
@@ -277,7 +287,7 @@ class Ui_MainWindow(QMainWindow): ##object
         # self.client.wait_for_server()
         # indication that server is online how
         self.goal = MoveBaseGoal()
-        self.goal.target_pose.header.frame_id = 'map' 
+        self.goal.target_pose.header.frame_id = 'map'
         self.goal.target_pose.pose.position.x = -24.203
         self.goal.target_pose.pose.position.y = 1.498
         self.goal.target_pose.pose.orientation.z = 1.000
@@ -288,7 +298,7 @@ class Ui_MainWindow(QMainWindow): ##object
         if self.client.get_state() == GoalStatus.SUCCEEDED:
             self.updateLog("Approachnig destination")
             self.goal = MoveBaseGoal()
-            self.goal.target_pose.header.frame_id = 'map' 
+            self.goal.target_pose.header.frame_id = 'map'
             self.goal.target_pose.pose.position.x = -28.314
             self.goal.target_pose.pose.position.y = 5.000
             self.goal.target_pose.pose.orientation.z = 1.000
@@ -370,25 +380,27 @@ class Ui_MainWindow(QMainWindow): ##object
         self.clear_costmap_client()
         time.sleep(2)
         self.goal = MoveBaseGoal()
-        self.goal.target_pose.header.frame_id = 'map' 
+        self.goal.target_pose.header.frame_id = 'map'
         self.goal.target_pose.pose.position.x = 5.762
         self.goal.target_pose.pose.position.y = -1.013
         self.goal.target_pose.pose.orientation.z = -0.060
         self.goal.target_pose.pose.orientation.w = 0.998
         self.client.send_goal(self.goal)
-        while(self.client.get_state() == GoalStatus.PENDING) or (self.client.get_state() == GoalStatus.ACTIVE):
+        while(self.client.get_state() == GoalStatus.PENDING) or (
+                self.client.get_state() == GoalStatus.ACTIVE):
             app.processEvents()
         if self.client.get_state() == GoalStatus.SUCCEEDED:
             self.updateLog("Approaching HOME")
             rospy.sleep(1)
             self.goal = MoveBaseGoal()
-            self.goal.target_pose.header.frame_id = 'map' 
+            self.goal.target_pose.header.frame_id = 'map'
             self.goal.target_pose.pose.position.x = 8.242
             self.goal.target_pose.pose.position.y = -1.485
             self.goal.target_pose.pose.orientation.z = 0.696
             self.goal.target_pose.pose.orientation.w = 0.718
             self.client.send_goal(self.goal)
-            while(self.client.get_state() == GoalStatus.PENDING) or (self.client.get_state() == GoalStatus.ACTIVE):
+            while(self.client.get_state() == GoalStatus.PENDING) or (
+                    self.client.get_state() == GoalStatus.ACTIVE):
                 app.processEvents()
             if self.client.get_state() == GoalStatus.SUCCEEDED:
                 self.updateLog("Arrived at HOME.")
@@ -407,8 +419,8 @@ class Ui_MainWindow(QMainWindow): ##object
         self.cmdvel.angular.y = 0
         self.cmdvel.angular.z = 0
         self.pub.publish(self.cmdvel)
-        self.pub_nav.publish() # cancel 
-        # cancel nav goal, send cmd vel 0, 
+        self.pub_nav.publish()  # cancel
+        # cancel nav goal, send cmd vel 0,
 
     def reset(self):
         """Buttton to reset destination (No Longer Used)."""
@@ -437,7 +449,7 @@ class Ui_MainWindow(QMainWindow): ##object
         print(widget.text())
         if widget.text() == "&Yes":
             print("selected OK")
-            self.pub_nav.publish() # cancel 
+            self.pub_nav.publish()  # cancel
             # cancel nav goal
         else: 
             print("selected Cancel")
@@ -452,22 +464,33 @@ class Ui_MainWindow(QMainWindow): ##object
         self.myHome.setText(_translate("MainWindow", " HOME"))
         # self.myManual.setText(_translate("MainWindow", "MANUAL CONTROL"))
         self.myTime.setText(_translate("MainWindow", "Loading Time..."))
-        self.myMission.setText(_translate("MainWindow", "Loading Current Mission..."))
+        self.myMission.setText(_translate("MainWindow",
+                                          "Loading Current Mission..."))
         self.myBatteryLevel.setText(_translate("MainWindow", "Battery Level"))
         self.myReset.setText(_translate("MainWindow", "ARM"))
         # self.myExit.setText(_translate("MainWindow", "PushButton"))
-        self.myDesc.setText(_translate("MainWindow", "EE Dept   AMD-R\n\nJonathan Lee\nKenji Eu\nChia Yu Hang\nNeo Jie En"))
+        self.myDesc.setText(_translate("MainWindow",
+                                       "EE Dept   AMD-R\n\n"
+                                       "Jonathan Lee\n"
+                                       "Kenji Eu\n"
+                                       "Chia Yu Hang\n"
+                                       "Neo Jie En"))
+
 
 def batteryTemp(data: BatteryState, ui: Ui_MainWindow) -> None:
     """Callback function when data is recived from battery topic to update battery on hmi."""
     ui.updateBattery(data.percentage)
     ui.updateTime()
 
+
 def logTemp_rosout(data: String):
     """Callback function to add debug msg on hmi from ros topics."""
-    strdata = str(data.data)
-    #ui.updateLog("kO")
-    ui.ScrollLabel.verticalScrollBar().setValue(ui.ScrollLabel.verticalScrollBar().maximum())
+    # strdata = str(data.data)
+    # ui.updateLog("kO")
+    ui.ScrollLabel.verticalScrollBar().setValue(
+        ui.ScrollLabel.verticalScrollBar().maximum()
+    )
+
 
 def logTemp_order(data: Int16):
     """Callback function when an order is recived (Order node)."""
