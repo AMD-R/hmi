@@ -16,6 +16,7 @@ from sensor_msgs.msg import BatteryState
 from geometry_msgs.msg import Twist
 from actionlib_msgs.msg import GoalID, GoalStatus
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from iot.msg import DrawerContent
 
 from hmi_modules.ctrl import Ui_ControlWindow
 from hmi_modules.analoggaugewidget import QRoundProgressBar
@@ -50,6 +51,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):  # object
         self.clear_costmap_client = rospy.ServiceProxy(
             '/move_base/clear_costmaps', std_srvs.srv.Empty)
 
+        self.pub_drawer = rospy.Publisher("iot/drawer", DrawerContent,
+                                          queue_size=10)
+
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1280, 720)
         MainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
@@ -79,8 +83,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):  # object
                        QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.myCall.setIcon(icon)
         self.myCall.setIconSize(QtCore.QSize(40, 40))
-        self.myCall.setObjectName("myCall")
-        self.myCall.clicked.connect(self.call)
+        self.myCall.setObjectName("Send")
+        self.myCall.clicked.connect(self.send)
 
         # Button to go to D block
         self.myHome = QtWidgets.QPushButton(self.centralwidget)
@@ -95,7 +99,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):  # object
         self.myHome.setIconSize(QtCore.QSize(40, 40))
         self.myHome.setObjectName("myHome")
         self.myHome.show()
-        self.myHome.clicked.connect(self.home)
+        self.myHome.clicked.connect(self.recive)
 
         # Manual Controller for the AMD-R
         self.myManual = QtWidgets.QPushButton(self.centralwidget)
@@ -277,6 +281,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):  # object
     def exitapp(self):
         """Button to exit the UI."""
         sys.exit()
+
+    @QtCore.pyqtSlot()
+    def send(self):
+        self.home()
 
     def call(self):
         """Button to move AMD-R to trent."""
