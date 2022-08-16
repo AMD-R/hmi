@@ -2,29 +2,26 @@
 import rospy
 import time
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt
 import actionlib
-from sympy import maximum
-import iconfinal
+# import iconfinal
 
-from arm_controller.clients import *
+from arm_controller.clients import clientNav, clientVision, clientArm
 
 import std_srvs.srv
 
 from std_msgs.msg import String
-from std_msgs.msg import Float32, Int16
+from std_msgs.msg import Int16
 from sensor_msgs.msg import BatteryState
-from rosgraph_msgs.msg import Log
 from geometry_msgs.msg import Twist
 from actionlib_msgs.msg import GoalID, GoalStatus
-from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal, MoveBaseFeedback, MoveBaseResult
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 from hmi_modules.ctrl import Ui_ControlWindow
 from hmi_modules.analoggaugewidget import QRoundProgressBar
 
 
-class Ui_MainWindow(QMainWindow):  # object
+class Ui_MainWindow(QtWidgets.QMainWindow):  # object
 
     def openWindow(self):
         self.window = QtWidgets.QMainWindow()
@@ -78,7 +75,8 @@ class Ui_MainWindow(QMainWindow):  # object
         font.setPointSize(16)
         self.myCall.setFont(font)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/newicon/icons/trent.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/newicon/icons/trent.png"),
+                       QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.myCall.setIcon(icon)
         self.myCall.setIconSize(QtCore.QSize(40, 40))
         self.myCall.setObjectName("myCall")
@@ -91,7 +89,8 @@ class Ui_MainWindow(QMainWindow):  # object
         font.setPointSize(16)
         self.myHome.setFont(font)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/newicon/icons/home.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(":/newicon/icons/home.png"),
+                        QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.myHome.setIcon(icon1)
         self.myHome.setIconSize(QtCore.QSize(40, 40))
         self.myHome.setObjectName("myHome")
@@ -106,7 +105,8 @@ class Ui_MainWindow(QMainWindow):  # object
         self.myManual.setFont(font)
         self.myManual.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/newicon/icons/control.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap(":/newicon/icons/control.png"),
+                        QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.myManual.setIcon(icon2)
         self.myManual.setIconSize(QtCore.QSize(150, 150))
         self.myManual.setObjectName("myManual")
@@ -114,25 +114,25 @@ class Ui_MainWindow(QMainWindow):  # object
 
         # Progress bar for battery percentage
         self.widget = QRoundProgressBar(self.centralwidget)
-        self.widget.setGeometry(QtCore.QRect(535, 140, 261, 221))# 321, 261))
+        self.widget.setGeometry(QtCore.QRect(535, 140, 261, 221))  # 321, 261))
         # self.widget.setAlignment(Qt.AlignCenter)
         self.widget.setObjectName("widget")
 
         # Autoscrolling Logger
-        self.widget_2 = QWidget(self.centralwidget) 
+        self.widget_2 = QtWidgets.QWidget(self.centralwidget)
         self.widget_2.setGeometry(QtCore.QRect(360, 370, 561, 241))
         self.widget_2.setObjectName("widget_2")
         self.logText = QtWidgets.QLabel(self.widget_2)
-        self.ScrollLabel = QScrollArea(self.widget_2)
-        self.ScrollLabel.setGeometry(QtCore.QRect(0, 0, 561, 241)) ## this made the widget the desired sized.
-        self.label_scroll = QtWidgets.QLabel(self.ScrollLabel)#??? ######
+        self.ScrollLabel = QtWidgets.QScrollArea(self.widget_2)
+        # Making Widget the desired size
+        self.ScrollLabel.setGeometry(QtCore.QRect(0, 0, 561, 241))
+        self.label_scroll = QtWidgets.QLabel(self.ScrollLabel)  # ??? ######
         self.testtext = "Logging..."
-        self.label_scroll.text = self.testtext #delete this 
         self.label_scroll.setText(self.testtext)
         self.label_scroll.setGeometry(QtCore.QRect(0, 0, 561, 241))
         self.label_scroll_counter = QtWidgets.QLabel(self.ScrollLabel)
         self.ScrollLabel.setWidgetResizable(True)
-        self.lay = QVBoxLayout(self.widget_2)
+        self.lay = QtWidgets.QVBoxLayout(self.widget_2)
         self.label_scroll.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.label_scroll.setWordWrap(True)
         self.lay.addWidget(self.label_scroll)
@@ -157,7 +157,8 @@ class Ui_MainWindow(QMainWindow):  # object
         self.myStop.setStyleSheet("")
         self.myStop.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/newicon/icons/stop.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon2.addPixmap(QtGui.QPixmap(":/newicon/icons/stop.png"),
+                        QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.myStop.setIcon(icon2)
         self.myStop.setIconSize(QtCore.QSize(500, 500))
         # self.myStop.setStyleSheet("background-color: rgb(255, 0, 0);")
@@ -233,7 +234,7 @@ class Ui_MainWindow(QMainWindow):  # object
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        self.haha = 0
+        self.logged_count = 0
         # myList[1] = "Logging Window"
 
     def updateTime(self):
@@ -257,24 +258,26 @@ class Ui_MainWindow(QMainWindow):  # object
 
     def updateLog(self, newtext):
         """Updates log widget text and autoscrolls."""
-        self.haha += 1
-        if self.haha >= 20:
+        self.logged_count += 1
+        # Scrolling Text
+        if self.logged_count >= 20:
             self.label_scroll.text = "Logging Window"
-            self.haha = 0
+            self.logged_count = 0
             print(self.label_scroll.text)
-        self.label_scroll.text = self.label_scroll.text + "\n" + newtext  # append new string
+        # Appending new string
+        self.label_scroll.text = self.label_scroll.text + "\n" + newtext
         self.label_scroll.setText(self.label_scroll.text)
         self.label_scroll.update()  # update text
         self.label_scroll.setWordWrap(True)
         app.processEvents()
-        showing = str(self.label_scroll.text)
-        self.ScrollLabel.verticalScrollBar().setValue(self.ScrollLabel.height())
-        # self.ScrollLabel.verticalScrollBar().setValue(self.ScrollLabel.verticalScrollBar().maximum()) # + self.label_scroll.height())
+        self.ScrollLabel.verticalScrollBar().setValue(
+            self.ScrollLabel.height()
+        )
 
     def exitapp(self):
         """Button to exit the UI."""
         sys.exit()
-        
+
     def call(self):
         """Button to move AMD-R to trent."""
         self.newtext = "TRENT button pressed! Heading to Trent..."
@@ -293,7 +296,10 @@ class Ui_MainWindow(QMainWindow):  # object
         self.goal.target_pose.pose.orientation.z = 1.000
         self.goal.target_pose.pose.orientation.w = 0.001
         self.client.send_goal(self.goal)
-        while(self.client.get_state() == GoalStatus.PENDING) or (self.client.get_state() == GoalStatus.ACTIVE):
+        while (
+                (self.client.get_state() == GoalStatus.PENDING) or
+                (self.client.get_state() == GoalStatus.ACTIVE)
+        ):
             app.processEvents()
         if self.client.get_state() == GoalStatus.SUCCEEDED:
             self.updateLog("Approachnig destination")
@@ -304,19 +310,25 @@ class Ui_MainWindow(QMainWindow):  # object
             self.goal.target_pose.pose.orientation.z = 1.000
             self.goal.target_pose.pose.orientation.w = 0.029
             self.client.send_goal(self.goal)
-            while(self.client.get_state() == GoalStatus.PENDING) or (self.client.get_state() == GoalStatus.ACTIVE):
+            while (
+                    (self.client.get_state() == GoalStatus.PENDING) or
+                    (self.client.get_state() == GoalStatus.ACTIVE)
+            ):
                 app.processEvents()
             if self.client.get_state() == GoalStatus.SUCCEEDED:
                 print("Approaching destination")
                 rospy.sleep(1)
                 self.goal = MoveBaseGoal()
-                self.goal.target_pose.header.frame_id = 'map' 
+                self.goal.target_pose.header.frame_id = 'map'
                 self.goal.target_pose.pose.position.x = -29.571
                 self.goal.target_pose.pose.position.y = 4.897
                 self.goal.target_pose.pose.orientation.z = 1.000
                 self.goal.target_pose.pose.orientation.w = 0.027
                 self.client.send_goal(self.goal)
-                while(self.client.get_state() == GoalStatus.PENDING) or (self.client.get_state() == GoalStatus.ACTIVE):
+                while (
+                        (self.client.get_state() == GoalStatus.PENDING) or
+                        (self.client.get_state() == GoalStatus.ACTIVE)
+                ):
                     app.processEvents()
                 if self.client.get_state() == GoalStatus.SUCCEEDED:
                     self.updateLog("GOAL Reached.")
@@ -328,21 +340,23 @@ class Ui_MainWindow(QMainWindow):  # object
 
     def demo_arm(self):
         """Button to demo moving the robotic arm."""
+        global visionResp
+
         self.updateLog("ARM operation starting")
         self.updateMission("Hailing Lift")
         clientNav(True)
         clientVision(True)
-        if visionResp.z == True:
-            clientArm(0, visionResp.x, visionResp.y , 300, 200, False)
+        if visionResp.z is True:
+            clientArm(0, visionResp.x, visionResp.y, 300, 200, False)
             timeY = visionResp.x*420
             timeZ = visionResp.y*160
             if timeY >= timeZ:
                 time.sleep(timeY)
             elif timeZ >= timeY:
                 time.sleep(timeZ)
-            clientArm(0, 0, 0 , 300, 200, True)
+            clientArm(0, 0, 0, 300, 200, True)
             time.sleep(15)
-            clientArm(0, 0, 0 , 300, 200, False)
+            clientArm(0, 0, 0, 300, 200, False)
             time.sleep(2)
             clientArm(0, -visionResp.x, -visionResp.y, 300, 200, False)
             if timeY >= timeZ:
@@ -429,20 +443,21 @@ class Ui_MainWindow(QMainWindow):  # object
 
     def reset_pop(self):
         """Popup to confirm destination reset (No Longer Used)."""
-        msg = QMessageBox()
+        msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Reset Window")
         msg.setText("Confirm Reset Destination?")
 
         # Warning, Question, Critical, Info
-        msg.setIcon(QMessageBox.Question)
-        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg.setIcon(QtWidgets.QMessageBox.Question)
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes |
+                               QtWidgets.QMessageBox.No)
 
         # default button with blue frame
-        msg.setDefaultButton(QMessageBox.Ok)
-        msg.setInformativeText("Choosing OK will cancel the current destination. Proceed?")
+        msg.setDefaultButton(QtWidgets.QMessageBox.Ok)
+        msg.setInformativeText("Choosing OK will cancel the current "
+                               "destination. Proceed?")
         msg.buttonClicked.connect(self.reset_pop_button)
         # show message box
-        x = msg.exec_()
 
     def reset_pop_button(self, widget):
         """The Buttons for reset destination popup (No Longer Used)."""
@@ -451,10 +466,10 @@ class Ui_MainWindow(QMainWindow):  # object
             print("selected OK")
             self.pub_nav.publish()  # cancel
             # cancel nav goal
-        else: 
+        else:
             print("selected Cancel")
             # go back to main window
-            
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
@@ -478,7 +493,8 @@ class Ui_MainWindow(QMainWindow):  # object
 
 
 def batteryTemp(data: BatteryState, ui: Ui_MainWindow) -> None:
-    """Callback function when data is recived from battery topic to update battery on hmi."""
+    """Callback function when data is recived from battery topic to update
+    battery on hmi."""
     ui.updateBattery(data.percentage)
     ui.updateTime()
 
@@ -503,6 +519,7 @@ def logTemp_order(data: Int16):
     elif tem == "0":
         ui.updateLog("Heading to HOME")
         ui.home()
+
 
 if __name__ == "__main__":
     try:
