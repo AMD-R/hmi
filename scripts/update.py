@@ -22,7 +22,7 @@ from hmi_modules.ctrl import Ui_ControlWindow
 from hmi_modules.analoggaugewidget import QRoundProgressBar
 
 
-class Ui_MainWindow(QtWidgets.QMainWindow):  # object
+class UIMainWindow(QtWidgets.QMainWindow):  # object
 
     def openWindow(self):
         self.window = QtWidgets.QMainWindow()
@@ -500,7 +500,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):  # object
                                        "Neo Jie En"))
 
 
-def batteryTemp(data: BatteryState, ui: Ui_MainWindow) -> None:
+def batteryTemp(data: BatteryState, ui: UIMainWindow) -> None:
     """Callback function when data is recived from battery topic to update
     battery on hmi."""
     ui.updateBattery(data.percentage)
@@ -541,7 +541,7 @@ if __name__ == "__main__":
         # Creating UI object
         app = QtWidgets.QApplication(sys.argv)
         MainWindow = QtWidgets.QMainWindow()
-        ui = Ui_MainWindow()
+        ui = UIMainWindow()
         ui.setupUi(MainWindow)
         MainWindow.showFullScreen()
         ui.updateMission("Idle")
