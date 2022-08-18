@@ -60,6 +60,7 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
         self.central_widget = QtWidgets.QStackedWidget(self)
 
         self.__make_main_widget()
+        self.__make_qr_reader()
 
         # Adding widgets to stacked widget
         self.central_widget.addWidget(self.main_screen)
@@ -508,6 +509,10 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
         self.myDesc.setGeometry(QtCore.QRect(950, 500, 231, 111))
         self.myDesc.setFrameShape(QtWidgets.QFrame.Box)
         self.myDesc.setObjectName("myDesc")
+
+    def __make_qr_reader(self):
+        self.qr_reader = QRDetector(self, False)
+        self.qr_reader.setObjectName("QRDetector")
 
 
 def batteryTemp(data: BatteryState, ui: UIMainWindow) -> None:
