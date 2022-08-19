@@ -126,6 +126,10 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
     def send(self):
         self.home()
 
+    @QtCore.pyqtSlot()
+    def recieve(self):
+        self.call()
+
     def call(self):
         """Button to move AMD-R to trent."""
         self.newtext = "TRENT button pressed! Heading to Trent..."
@@ -383,7 +387,7 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
         self.myHome.setIconSize(QtCore.QSize(40, 40))
         self.myHome.setObjectName("myHome")
         self.myHome.show()
-        self.myHome.clicked.connect(self.recive)
+        self.myHome.clicked.connect(self.recieve)
 
         # Manual Controller for the AMD-R
         self.myManual = QtWidgets.QPushButton(self.main_screen)
