@@ -4,7 +4,7 @@ import time
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 import actionlib
-# import iconfinal
+import iconfinal
 
 from arm_controller.clients import clientNav, clientVision, clientArm
 
