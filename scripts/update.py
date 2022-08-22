@@ -25,12 +25,8 @@ from hmi_modules.QRDetector import QRDetector
 
 class UIMainWindow(QtWidgets.QMainWindow):  # object
 
-    def openWindow(self):
-        self.window = QtWidgets.QMainWindow()
-        self.ui = Ui_ControlWindow()
-        self.ui.setupUi(self.window)
-        self.window.show()
-        self.close()
+    def switch_to_controller(self):
+        self.central_widget.setCurrentWidget(self.controller)
 
     def __init__(self, parent: QtWidgets.QWidget = None):
         super().__init__(parent)
@@ -61,6 +57,7 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
 
         self.__make_main_widget()
         self.__make_qr_reader()
+        self.__make_controller()
 
         # Adding widgets to stacked widget
         self.central_widget.addWidget(self.main_screen)
@@ -403,7 +400,7 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
         self.myManual.setIcon(icon2)
         self.myManual.setIconSize(QtCore.QSize(150, 150))
         self.myManual.setObjectName("myManual")
-        self.myManual.clicked.connect(self.openWindow)
+        self.myManual.clicked.connect(self.switch_to_controller)
 
         # Progress bar for battery percentage
         self.widget = QRoundProgressBar(self.main_screen)
@@ -417,6 +414,7 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
         self.widget_2.setObjectName("widget_2")
         self.logText = QtWidgets.QLabel(self.widget_2)
         self.ScrollLabel = QtWidgets.QScrollArea(self.widget_2)
+
         # Making Widget the desired size
         self.ScrollLabel.setGeometry(QtCore.QRect(0, 0, 561, 241))
         self.label_scroll = QtWidgets.QLabel(self.ScrollLabel)  # ??? ######
@@ -518,6 +516,13 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
     def __make_qr_reader(self):
         self.qr_reader = QRDetector(self, False)
         self.qr_reader.setObjectName("QRDetector")
+
+    def __make_controller(self):
+        self.controller = Ui_ControlWindow(self)
+        self.central_widget.addWidget(self.controller)
+        self.controller.quitted.connect(
+            lambda: self.central_widget.setCurrentWidget(self.main_screen)
+        )
 
 
 def batteryTemp(data: BatteryState, ui: UIMainWindow) -> None:
