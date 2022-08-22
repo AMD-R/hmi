@@ -110,7 +110,7 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
             self.logged_count = 0
             print(text)
         # Appending new string
-        text = self.label_scroll.text + "\n" + newtext
+        text = text + "\n" + newtext
         self.label_scroll.setText(text)
         self.label_scroll.update()  # update text
         self.label_scroll.setWordWrap(True)
