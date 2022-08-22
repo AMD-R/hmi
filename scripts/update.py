@@ -102,15 +102,16 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
 
     def updateLog(self, newtext):
         """Updates log widget text and autoscrolls."""
+        text = self.label_scroll.text()
         self.logged_count += 1
         # Scrolling Text
         if self.logged_count >= 20:
-            self.label_scroll.text = "Logging Window"
+            text = "Logging Window"
             self.logged_count = 0
-            print(self.label_scroll.text)
+            print(text)
         # Appending new string
-        self.label_scroll.text = self.label_scroll.text + "\n" + newtext
-        self.label_scroll.setText(self.label_scroll.text)
+        text = self.label_scroll.text + "\n" + newtext
+        self.label_scroll.setText(text)
         self.label_scroll.update()  # update text
         self.label_scroll.setWordWrap(True)
         app.processEvents()
