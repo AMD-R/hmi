@@ -61,9 +61,10 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
 
         # Adding widgets to stacked widget
         self.central_widget.addWidget(self.main_screen)
+        self.central_widget.addWidget(self.controller)
         self.central_widget.addWidget(self.qr_reader)
 
-        # Status Bar
+        # Setting up window
         self.setCentralWidget(self.central_widget)
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1269, 26))
@@ -519,7 +520,6 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
 
     def __make_controller(self):
         self.controller = Ui_ControlWindow(self)
-        self.central_widget.addWidget(self.controller)
         self.controller.quitted.connect(
             lambda: self.central_widget.setCurrentWidget(self.main_screen)
         )
