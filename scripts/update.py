@@ -5,6 +5,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 import actionlib
 import iconfinal
+import requests
+import yaml
+import json
 
 from arm_controller.clients import clientNav, clientVision, clientArm
 
@@ -22,14 +25,23 @@ from hmi_modules.ctrl import Ui_ControlWindow
 from hmi_modules.analoggaugewidget import QRoundProgressBar
 from hmi_modules.QRDetector import QRDetector
 
+from amd_r_welcome.wrappers import HTTPRequest
+
 
 class UIMainWindow(QtWidgets.QMainWindow):  # object
+    make_request = QtCore.pyqtSignal(str, str, dict)
 
     def switch_to_controller(self):
         self.central_widget.setCurrentWidget(self.controller)
 
-    def __init__(self, parent: QtWidgets.QWidget = None):
+    def __init__(self, config: str, parent: QtWidgets.QWidget = None):
         super().__init__(parent)
+
+        # Reading Config
+        with open(config, 'r') as f:
+            data = yaml.safe_load(f)
+            self.host = data['host']
+            self.port = data['port']
 
         # rospy.init_node('send_client_goal')
         self.client = actionlib.SimpleActionClient('/move_base',
@@ -74,10 +86,28 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
         self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
 
+        # Setting Up http requester
+        self.request_thread = QtCore.QThread(self)
+        url = f"{self.host}:{self.port}" + "/api/amd-r/verifyUser"
+        self.requester = HTTPRequest(url, "POST")
+        # Moving and Starting Thread
+        self.requester.moveToThread(self.request_thread)
+        self.request_thread.start()
+        # Connecting Signals
+        self.request_thread.finished.connect(self.requester.deleteLater)
+        self.requester.completed.connect(self.handle_http)
+        self.requester.error.connect(self.handle_http_error)
+
         self.retranslateUi(self)
         QtCore.QMetaObject.connectSlotsByName(self)
         self.logged_count = 0
         # myList[1] = "Logging Window"
+
+    def closeEvent(self, event: QtGui.QCloseEvent):
+        rospy.loginfo("Waiting For Thread to Close Properly")
+        self.request_thread.quit()
+        self.request_thread.wait()
+        self.deleteLater()
 
     def updateTime(self):
         """Updates time label."""
@@ -342,6 +372,39 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
                                        "Chia Yu Hang\n"
                                        "Neo Jie En"))
 
+    @QtCore.pyqtSlot(str)
+    def handle_qr(self, data: str) -> None:
+        """Slot for handling QR Code detected by camera.
+        Parameters
+        ----------
+        data: str
+            Data encoded on the QR Code in JSON format
+        """
+        # Loading JSON data
+        data: dict = json.loads(data)
+        self.json_data = {
+                'id': data['id'],
+                'otp': data['otp']
+        }
+
+        if self.mode == "staff":
+            self.json_data['role'] = "staff"
+        elif self.mode == "user":
+            self.json_data['role'] = "Basic"
+        else:
+            print("Invalid Mode!")
+            return
+
+        self.make_request.emit("", "", self.json_data)
+
+    @QtCore.pyqtSlot(requests.Response)
+    def handle_http(self, response: requests.Response) -> None:
+        ...
+
+    @QtCore.pyqtSlot(Exception)
+    def handle_http_error(self, error: Exception) -> None:
+        ...
+
     def __make_main_widget(self) -> None:
         """Function to make main widget."""
         # Creating main_screen widget
@@ -517,6 +580,7 @@ class UIMainWindow(QtWidgets.QMainWindow):  # object
     def __make_qr_reader(self):
         self.qr_reader = QRDetector(self, False)
         self.qr_reader.setObjectName("QRDetector")
+        self.qr_reader.detected.connect(self.handle_qr)
 
     def __make_controller(self):
         self.controller = Ui_ControlWindow(self)
