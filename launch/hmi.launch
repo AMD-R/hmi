@@ -5,7 +5,9 @@
     <include file="$(find navigation)/launch/full_nav.launch" />
 
     <!-- IOT -->
-    <include file="$(find iot)/launch/iot.launch" />
+    <include file="$(find iot)/launch/iot.launch">
+        <param name="config" value="$(find iot)/config/server.yml" />
+    </include>
 
     <!-- HMI -->
     <node name="hmi" pkg="hmi" type="update.py" />

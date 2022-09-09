@@ -1,4 +1,6 @@
 <launch>
     <master auto="start" />
-    <node name="hmi" pkg="hmi" type="update.py" />
+    <node name="hmi" pkg="hmi" type="update.py">
+        <param name="config" value="$(find iot)/config/server.yml" />
+    </node>
 </launch>
